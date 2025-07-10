@@ -1,4 +1,4 @@
-name: Build i2c-tools for ARMv7
+name: Build i2c-tools for ARMv7 (patched)
 
 on:
   push:
@@ -10,19 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - name: Checkout this repository
+      uses: actions/checkout@v3
 
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y musl-tools build-essential git linux-libc-dev linux-headers-generic
-        sudo apt install -y linux-headers-$(uname -r)
+        sudo apt install -y musl-tools build-essential git
 
-    - name: Clone i2c-tools
+    - name: Clone and patch i2c-tools
       run: |
         git clone https://git.kernel.org/pub/scm/utils/i2c-tools/i2c-tools.git
         cd i2c-tools
+        # Replace problematic include
+        sed -i 's|#include <linux/types.h>|#include <stdint.h>|' include/i2c/smbus.h
         make CC=musl-gcc LDFLAGS="--static"
         cp tools/i2c* ../
         cd ..
