@@ -209,25 +209,6 @@ void interpret_reg33(uint8_t value) {
         printf("  - Charge Current (3:0)          : Invalid setting (reserved)\n");
 }
 
-void interpret_reg35(uint8_t value) {
-    printf("REG35 (Charging Control 3): 0x%02X\n", value);
-
-    // Nur Bits 3–0 sind gültig
-    uint8_t cc_bits = value & 0x0F;
-    int charge_current[] = {
-        300, 450, 600, 750,
-        900, 1050, 1200, 1350,
-        1500, 1650, 1800, 1950,
-        2100, 2250, -1, -1
-    };
-    int current = charge_current[cc_bits];
-
-    if (current > 0)
-        printf("  - Loop Charging Current Limit : %d mA\n", current);
-    else
-        printf("  - Loop Charging Current Limit : Invalid/Reserved\n");
-}
-
 void interpret_battery_voltage(uint8_t reg78, uint8_t reg79) {
     int raw = (reg78 << 4) | (reg79 & 0x0F);
     float voltage_mV = raw * 1.1f;
