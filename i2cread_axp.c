@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <string.h>
+#include <stdlib.h>
 
 int read_reg(int file, int addr, int reg) {
     unsigned char buf[1] = { reg };
@@ -13,28 +14,22 @@ int read_reg(int file, int addr, int reg) {
 }
 
 void print_header() {
-    printf("╔═══════════════════════════════════════════════╦════════════╦════════════════════════════════════════════╗
-");
-    printf("║ Register Description                         ║ Hex Value  ║ Interpretation                              ║
-");
-    printf("╠═══════════════════════════════════════════════╬════════════╬════════════════════════════════════════════╣
-");
+    printf("╔═══════════════════════════════════════════════╦════════════╦════════════════════════════════════════════╗\n");
+    printf("║ Register Description                         ║ Hex Value  ║ Interpretation                              ║\n");
+    printf("╠═══════════════════════════════════════════════╬════════════╬════════════════════════════════════════════╣\n");
 }
 
 void print_row(const char *label, int value, const char *meaning) {
-    printf("║ %-45s ║  0x%02X     ║ %-42s ║
-", label, value, meaning);
+    printf("║ %-45s ║  0x%02X     ║ %-42s ║\n", label, value, meaning);
 }
 
 void print_footer() {
-    printf("╚═══════════════════════════════════════════════╩════════════╩════════════════════════════════════════════╝
-");
+    printf("╚═══════════════════════════════════════════════╩════════════╩════════════════════════════════════════════╝\n");
 }
 
 int main(int argc, char **argv) {
     if (argc != 3) {
-        fprintf(stderr, "Usage: %s <i2c-bus-path> <device-hex>
-", argv[0]);
+        fprintf(stderr, "Usage: %s <i2c-bus-path> <device-hex>\n", argv[0]);
         return 1;
     }
 
@@ -53,21 +48,21 @@ int main(int argc, char **argv) {
     int reg01 = read_reg(file, addr, 0x01);
     print_row("Power-On Reason (0x01)", reg01, "-");
 
-    int acin_volt = ((read_reg(file, addr, 0x56) << 4) | (read_reg(file, addr, 0x57) & 0x0F));
-    int acin_curr = ((read_reg(file, addr, 0x58) << 4) | (read_reg(file, addr, 0x59) & 0x0F));
+    int acv = ((read_reg(file, addr, 0x56) << 4) | (read_reg(file, addr, 0x57) & 0x0F));
+    int acc = ((read_reg(file, addr, 0x58) << 4) | (read_reg(file, addr, 0x59) & 0x0F));
     char acvolt[32], accurr[32];
-    snprintf(acvolt, sizeof(acvolt), "%dmV", acin_volt * 1.7);
-    snprintf(accurr, sizeof(accurr), "%dmA", acin_curr * 0.625);
-    print_row("ACIN Voltage (0x56/0x57)", acin_volt, acvolt);
-    print_row("ACIN Current (0x58/0x59)", acin_curr, accurr);
+    snprintf(acvolt, sizeof(acvolt), "%dmV", (int)(acv * 17 / 10));
+    snprintf(accurr, sizeof(accurr), "%dmA", (int)(acc * 625 / 1000));
+    print_row("ACIN Voltage (0x56/0x57)", acv, acvolt);
+    print_row("ACIN Current (0x58/0x59)", acc, accurr);
 
-    int vbus_volt = ((read_reg(file, addr, 0x5A) << 4) | (read_reg(file, addr, 0x5B) & 0x0F));
-    int vbus_curr = ((read_reg(file, addr, 0x5C) << 4) | (read_reg(file, addr, 0x5D) & 0x0F));
+    int vbv = ((read_reg(file, addr, 0x5A) << 4) | (read_reg(file, addr, 0x5B) & 0x0F));
+    int vbc = ((read_reg(file, addr, 0x5C) << 4) | (read_reg(file, addr, 0x5D) & 0x0F));
     char vbvolt[32], vbcurr[32];
-    snprintf(vbvolt, sizeof(vbvolt), "%dmV", vbus_volt * 1.7);
-    snprintf(vbcurr, sizeof(vbcurr), "%dmA", vbus_curr * 0.375);
-    print_row("VBUS Voltage (0x5A/0x5B)", vbus_volt, vbvolt);
-    print_row("VBUS Current (0x5C/0x5D)", vbus_curr, vbcurr);
+    snprintf(vbvolt, sizeof(vbvolt), "%dmV", (int)(vbv * 17 / 10));
+    snprintf(vbcurr, sizeof(vbcurr), "%dmA", (int)(vbc * 375 / 1000));
+    print_row("VBUS Voltage (0x5A/0x5B)", vbv, vbvolt);
+    print_row("VBUS Current (0x5C/0x5D)", vbc, vbcurr);
 
     int reg33 = read_reg(file, addr, 0x33);
     char charge_str[64];
@@ -85,13 +80,6 @@ int main(int argc, char **argv) {
     if (reg36 & 0x20) strcat(status, "USB ");
     if (reg36 & 0x04) strcat(status, "Battery ");
     print_row("Charge Status (0x36)", reg36, status[0] ? status : "-");
-    int reg7A = read_reg(file, addr, 0x7A);
-    int reg7B = read_reg(file, addr, 0x7B);
-    int vbat_raw = ((reg7A << 4) | (reg7B & 0x0F));
-    char vbat_info[32];
-    snprintf(vbat_info, sizeof(vbat_info), "%dmV", vbat_raw * 11 / 10);
-    print_row("Battery Voltage (0x7A/0x7B)", vbat_raw, vbat_info);
-
 
     int reg3A = read_reg(file, addr, 0x3A);
     int reg3B = read_reg(file, addr, 0x3B);
@@ -99,6 +87,13 @@ int main(int argc, char **argv) {
     char timer_str[32];
     snprintf(timer_str, sizeof(timer_str), "%d minutes", minutes);
     print_row("Charge Timer (0x3A/0x3B)", minutes, timer_str);
+
+    int reg7A = read_reg(file, addr, 0x7A);
+    int reg7B = read_reg(file, addr, 0x7B);
+    int vbat_raw = ((reg7A << 4) | (reg7B & 0x0F));
+    char vbat_info[32];
+    snprintf(vbat_info, sizeof(vbat_info), "%dmV", (int)(vbat_raw * 11 / 10));
+    print_row("Battery Voltage (0x7A/0x7B)", vbat_raw, vbat_info);
 
     int reg78 = read_reg(file, addr, 0x78);
     char fuel_str[32];
@@ -113,7 +108,7 @@ int main(int argc, char **argv) {
     for (int r = 0xB9; r <= 0xBE; r++) {
         int val = read_reg(file, addr, r);
         char desc[64];
-        snprintf(desc, sizeof(desc), "Temperature Sensor/Other Reg (0x%02X)", r);
+        snprintf(desc, sizeof(desc), "Temperature/Other Register (0x%02X)", r);
         print_row(desc, val, "-");
     }
 
