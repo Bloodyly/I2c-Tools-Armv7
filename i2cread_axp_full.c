@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdbool.h>
+
 
 
 #define MAX_REGISTERS 128
