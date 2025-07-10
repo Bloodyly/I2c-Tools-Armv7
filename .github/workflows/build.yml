@@ -16,7 +16,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y musl-tools build-essential git linux-libc-dev
+        sudo apt install -y musl-tools build-essential git linux-libc-dev linux-headers-generic
+        sudo apt install -y linux-headers-$(uname -r)
 
     - name: Clone i2c-tools
       run: |
