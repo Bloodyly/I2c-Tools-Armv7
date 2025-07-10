@@ -1,2 +1,2 @@
-# i2c-tools ARMv7
-This project builds statically linked i2c-tools for ARMv7 using musl.
+# i2cread ARMv7 tool
+Minimal tool to read I2C registers statically built for ARMv7.

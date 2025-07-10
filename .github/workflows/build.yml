@@ -1,4 +1,4 @@
-name: Build i2c-tools for ARMv7 (patched)
+name: Build i2cread tool for ARMv7 (static)
 
 on:
   push:
@@ -16,21 +16,15 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y musl-tools build-essential git
+        sudo apt install -y musl-tools gcc-arm-linux-gnueabihf
 
-    - name: Clone and patch i2c-tools
+    - name: Build statically linked i2cread
       run: |
-        git clone https://git.kernel.org/pub/scm/utils/i2c-tools/i2c-tools.git
-        cd i2c-tools
-        # Replace problematic include
-        sed -i 's|#include <linux/types.h>|#include <stdint.h>|' include/i2c/smbus.h
-        make CC=musl-gcc LDFLAGS="--static"
-        cp tools/i2c* ../
-        cd ..
-        zip tools-armv7.zip i2cget i2cset i2cdetect
+        arm-linux-gnueabihf-gcc -static -o i2cread i2cread.c
+        zip i2cread-armv7.zip i2cread
 
-    - name: Upload build artifacts
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: tools-armv7
-        path: tools-armv7.zip
+        name: i2cread-armv7
+        path: i2cread-armv7.zip
