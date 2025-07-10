@@ -1,0 +1,34 @@
+name: Build i2c-tools for ARMv7
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y musl-tools build-essential git
+
+    - name: Clone i2c-tools
+      run: |
+        git clone https://git.kernel.org/pub/scm/utils/i2c-tools/i2c-tools.git
+        cd i2c-tools
+        make CC=musl-gcc LDFLAGS="--static"
+        cp tools/i2c* ../
+        cd ..
+        zip tools-armv7.zip i2cget i2cset i2cdetect
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: tools-armv7
+        path: tools-armv7.zip
