@@ -19,7 +19,8 @@ jobs:
       run: |
         arm-linux-gnueabihf-gcc -static -o i2cread_axp i2cread_axp.c
         arm-linux-gnueabihf-gcc -static -o i2cset_axp i2cset_axp.c
-        zip axp223-tools-armv7.zip i2cread_axp i2cset_axp
+        arm-linux-gnueabihf-gcc -static -o i2cset_axp i2cread_axp_full.c
+        zip axp223-tools-armv7.zip i2cread_axp i2cset_axp i2cread_axp_full
 
     - name: Upload binaries
       uses: actions/upload-artifact@v4
