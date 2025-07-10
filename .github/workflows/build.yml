@@ -1,4 +1,4 @@
-name: Build i2cread tool for ARMv7 (static)
+name: Build i2cread (multi-bus) for ARMv7
 
 on:
   push:
@@ -10,20 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout this repository
+    - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Install dependencies
+    - name: Install build tools
       run: |
         sudo apt update
         sudo apt install -y musl-tools gcc-arm-linux-gnueabihf
 
-    - name: Build statically linked i2cread
+    - name: Compile static i2cread
       run: |
         arm-linux-gnueabihf-gcc -static -o i2cread i2cread.c
         zip i2cread-armv7.zip i2cread
 
-    - name: Upload artifact
+    - name: Upload binary
       uses: actions/upload-artifact@v4
       with:
         name: i2cread-armv7

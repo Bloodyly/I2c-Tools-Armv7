@@ -1,2 +1,2 @@
-# i2cread ARMv7 tool
-Minimal tool to read I2C registers statically built for ARMv7.
+# i2cread ARMv7 (multi-bus)
+Reads a register from a given I2C bus and device address.

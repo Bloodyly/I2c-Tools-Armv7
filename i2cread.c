@@ -5,19 +5,20 @@
 #include <linux/i2c-dev.h>
 
 int main(int argc, char **argv) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <device-hex> <register-hex>\n", argv[0]);
+    if (argc != 4) {
+        fprintf(stderr, "Usage: %s <i2c-bus-path> <device-hex> <register-hex>\n", argv[0]);
         return 1;
     }
 
-    int file = open("/dev/i2c-0", O_RDWR);
+    const char* dev_path = argv[1];
+    int addr = (int)strtol(argv[2], NULL, 16);
+    int reg = (int)strtol(argv[3], NULL, 16);
+
+    int file = open(dev_path, O_RDWR);
     if (file < 0) {
         perror("open");
         return 1;
     }
-
-    int addr = (int)strtol(argv[1], NULL, 16);
-    int reg = (int)strtol(argv[2], NULL, 16);
 
     if (ioctl(file, I2C_SLAVE, addr) < 0) {
         perror("ioctl");
