@@ -5,6 +5,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdint.h>
+
 
 #define MAX_REGISTERS 128
 
